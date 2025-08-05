@@ -100,7 +100,7 @@ def relu(x: float) -> float:
         x if x is greater than or equal to 0, 0 otherwise
 
     """
-    return x if x >= 0 else 0
+    return x if x >= 0 else 0.0
 
 
 def log(x: float) -> float:
@@ -215,7 +215,7 @@ def relu_back(x: float, y: float) -> float:
 # - prod: take the product of lists
 
 
-# TODO: Implement for Task 0.3.
+
 def map(a: Iterable[float], fn: Callable) -> Iterable[float]:
     """Map a function onto a list"""
     return [fn(x) for x in a]
