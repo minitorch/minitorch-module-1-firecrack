@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Iterable, List, Tuple
+from typing import Any, Iterable, List, Tuple, Set
 
 from typing_extensions import Protocol
 
@@ -22,8 +22,12 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
     Returns:
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
-    # TODO: Implement for Task 1.1.
-    raise NotImplementedError("Need to implement for Task 1.1")
+    val1 = list(vals)
+    val2 = list(vals)
+    val1[arg] += epsilon
+    val2[arg] -= epsilon
+
+    return (f(*val1) - f(*val2)) / (2 * epsilon)
 
 
 variable_count = 1
@@ -61,8 +65,20 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
     Returns:
         Non-constant Variables in topological order starting from the right.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError("Need to implement for Task 1.4")
+    visited: Set[int] = set()
+    result: List[Variable] = []
+
+    def dfs(var: Variable):
+        if var.is_constant() or var.unique_id in visited:
+            return
+        visited.add(var.unique_id)
+        for parent in var.parents:
+            dfs(parent)
+        result.append(var)
+
+    dfs(variable)
+    return reversed(result)
+
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
@@ -76,9 +92,24 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    # TODO: Implement for Task 1.4.
-    raise NotImplementedError("Need to implement for Task 1.4")
-
+    order: Iterable[Variable] = topological_sort(variable)
+    node2grad = {}
+    node2grad[variable.unique_id] = deriv
+    for node in order:
+        if node.is_leaf():
+            continue
+        if node.unique_id in node2grad:
+            d = node2grad[node.unique_id]
+        for inp, grad in node.chain_rule(d):
+            if inp.is_leaf():
+                inp.accumulate_derivative(grad)
+                continue
+            # 中间节点
+            if inp.unique_id not in node2grad:
+                node2grad[inp.unique_id] = 0
+            node2grad[inp.unique_id] += grad
+        
+        
 
 @dataclass
 class Context:
